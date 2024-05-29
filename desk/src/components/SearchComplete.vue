@@ -50,6 +50,7 @@ const props = defineProps({
 const r = createListResource({
   doctype: props.doctype,
   pageLength: props.pageLength,
+  orderBy: "name asc",
   auto: true,
   fields: [props.labelField, props.searchField, props.valueField],
   filters: {
