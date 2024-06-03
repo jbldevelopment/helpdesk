@@ -147,6 +147,9 @@ function getClientId() {
 function getSelectedOption(element_id: string) {
   const comboboxOptions = document.getElementById(element_id);
 
+  if (!comboboxOptions) {
+    return;
+  }
   const selectedOption = comboboxOptions.querySelector(
     'li[aria-selected="true"]'
   );
