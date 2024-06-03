@@ -74,17 +74,21 @@ const autocompleteRef = ref(null);
 const authStore = useAuthStore();
 
 function onUpdateQuery(query: string) {
-  const parentTicketType = getParentTicketType();
+  if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
+    const parentTicketType = getParentTicketType();
 
-  if (
-    autocompleteRef.value &&
-    props.doctype === "HD Ticket Type" &&
-    parentTicketType
-  ) {
     r.update({
       filters: {
         [props.searchField]: ["like", `%${query}%`],
         ["parent_ticket_type"]: ["=", parentTicketType],
+      },
+    });
+  } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
+    const client_id = getClientId();
+
+    r.update({
+      filters: {
+        ["client_id"]: ["=", client_id],
       },
     });
   } else {
@@ -99,21 +103,22 @@ function onUpdateQuery(query: string) {
 }
 
 watchEffect(() => {
-  if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
-    autocompleteRef.value?.$refs?.search?.$el?.addEventListener("focus", () => {
-      let filters = {
-        ["parent_ticket_type"]: ["=", getParentTicketType()],
-      };
-      UpdateQuery(filters);
-    });
-  } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
-    autocompleteRef.value?.$refs?.search?.$el?.addEventListener("focus", () => {
-      let filters = {
-        ["client_id"]: ["=", authStore.username],
-      };
-      UpdateQuery(filters);
-    });
-  }
+  autocompleteRef.value?.$refs?.search?.$el?.addEventListener(
+    "focus",
+    async () => {
+      if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
+        let filters = {
+          ["parent_ticket_type"]: ["=", getParentTicketType()],
+        };
+        UpdateQuery(filters);
+      } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
+        let filters = {
+          ["client_id"]: ["=", getClientId()],
+        };
+        UpdateQuery(filters);
+      }
+    }
+  );
 });
 
 function UpdateQuery(filters: any) {
@@ -125,9 +130,19 @@ function UpdateQuery(filters: any) {
 }
 
 function getParentTicketType() {
-  const comboboxOptions = document.getElementById(
-    "headlessui-combobox-options-4"
-  );
+  // Get selected parent ticket type
+  const parentTicketType = getSelectedOption("headlessui-combobox-options-4");
+  return parentTicketType;
+}
+
+function getClientId() {
+  // Get selected client id
+  const client_id = getSelectedOption("headlessui-combobox-options-725");
+  return client_id;
+}
+
+function getSelectedOption(element_id: string) {
+  const comboboxOptions = document.getElementById(element_id);
 
   const selectedOption = comboboxOptions.querySelector(
     'li[aria-selected="true"]'
