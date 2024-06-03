@@ -137,7 +137,10 @@ function getParentTicketType() {
 
 function getClientId() {
   // Get selected client id
-  const client_id = getSelectedOption("headlessui-combobox-options-725");
+  let client_id = getSelectedOption("headlessui-combobox-options-725");
+  if (!client_id) {
+    client_id = getSelectedOption("headlessui-combobox-options-524");
+  }
   return client_id;
 }
 
