@@ -13,7 +13,6 @@
 import { Autocomplete } from "@/components";
 import { createListResource } from "frappe-ui";
 import { computed, ref, watchEffect } from "vue";
-import { useAuthStore } from "@/stores/auth";
 
 const props = defineProps({
   value: {
@@ -71,7 +70,6 @@ const options = computed(
 );
 const selection = ref(null);
 const autocompleteRef = ref(null);
-const authStore = useAuthStore();
 
 function onUpdateQuery(query: string) {
   if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
@@ -131,34 +129,29 @@ function UpdateQuery(filters: any) {
 
 function getParentTicketType() {
   // Get selected parent ticket type
-  const parentTicketType = getSelectedOption("headlessui-combobox-options-4");
+  const parentTicketType = getSelectedOption("parent_ticket_type");
   return parentTicketType;
 }
 
 function getClientId() {
   // Get selected client id
-  let client_id = getSelectedOption("headlessui-combobox-options-725");
-  if (!client_id) {
-    client_id = getSelectedOption("headlessui-combobox-options-524");
-  }
+  let client_id = getSelectedOption("client_id");
   return client_id;
 }
 
-function getSelectedOption(element_id: string) {
-  const comboboxOptions = document.getElementById(element_id);
-
-  if (!comboboxOptions) {
+function getSelectedOption(class_name: string) {
+  const $wrapper = document.querySelector(`.${class_name}`);
+  if (!$wrapper) {
     return;
   }
-  const selectedOption = comboboxOptions.querySelector(
-    'li[aria-selected="true"]'
-  );
+
+  const selectedOption = $wrapper.innerText;
 
   if (!selectedOption) {
     return;
   }
 
-  const selectedValue = selectedOption.textContent.trim();
+  const selectedValue = selectedOption.split("\n").pop().trim();
   return selectedValue;
 }
 </script>

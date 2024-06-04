@@ -10,6 +10,7 @@
         v-show="!field.hide_from_customer"
         :key="field.fieldname"
         :field="field"
+        :class="field.fieldname"
         :value="templateFields[field.fieldname]"
         @change="setDisplayField(field, $event.value)"
       />
