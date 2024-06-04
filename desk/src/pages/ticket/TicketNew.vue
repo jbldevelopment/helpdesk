@@ -143,8 +143,10 @@ function evaluate_depends_on(expression: string, field: any, _value: any) {
 
       if (templateFields[fieldname] == depends_on_value) {
         field.hide_from_customer = false;
+        field.required = true;
       } else {
         field.hide_from_customer = true;
+        field.required = false;
       }
     } catch (e) {
       console.error(e);
