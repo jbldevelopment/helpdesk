@@ -89,6 +89,13 @@ function onUpdateQuery(query: string) {
         ["client_id"]: ["=", client_id],
       },
     });
+  } else if (autocompleteRef.value && props.doctype === "Customer") {
+    r.update({
+      filters: {
+        [props.searchField]: ["like", `%${query}%`],
+      },
+      pageLength: 500000,
+    });
   } else {
     r.update({
       filters: {
