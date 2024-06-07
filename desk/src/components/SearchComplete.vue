@@ -94,7 +94,6 @@ function onUpdateQuery(query: string) {
       filters: {
         [props.searchField]: ["like", `%${query}%`],
       },
-      pageLength: 5000,
     });
   } else {
     r.update({
