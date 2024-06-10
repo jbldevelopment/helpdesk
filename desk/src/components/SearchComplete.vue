@@ -72,9 +72,10 @@ const selection = ref(null);
 const autocompleteRef = ref(null);
 
 function onUpdateQuery(query: string) {
+  if (!query && autocompleteRef.value) return;
+
   if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
     const parentTicketType = getParentTicketType();
-
     r.update({
       filters: {
         [props.searchField]: ["like", `%${query}%`],
@@ -83,7 +84,6 @@ function onUpdateQuery(query: string) {
     });
   } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
     const client_id = getClientId();
-
     r.update({
       filters: {
         ["client_id"]: ["=", client_id],
