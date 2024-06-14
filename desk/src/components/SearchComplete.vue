@@ -5,13 +5,13 @@
     :options="options"
     :value="selection"
     @update:query="(q) => onUpdateQuery(q)"
-    @change="(v) => (selection = v)"
+    @change="onSelectionChange"
   />
 </template>
 
 <script setup lang="ts">
 import { Autocomplete } from "@/components";
-import { createListResource } from "frappe-ui";
+import { createListResource, createResource } from "frappe-ui";
 import { computed, ref, watchEffect } from "vue";
 
 const props = defineProps({
@@ -46,6 +46,9 @@ const props = defineProps({
   },
 });
 
+const selection = ref(null);
+const autocompleteRef = ref(null);
+
 const r = createListResource({
   doctype: props.doctype,
   pageLength: props.pageLength,
@@ -61,6 +64,7 @@ const r = createListResource({
       : null;
   },
 });
+
 const options = computed(
   () =>
     r.data?.map((result) => ({
@@ -68,13 +72,24 @@ const options = computed(
       value: result[props.valueField],
     })) || []
 );
-const selection = ref(null);
-const autocompleteRef = ref(null);
+
+const clientName = createResource({
+  url: "frappe.client.get_value",
+  params: {
+    doctype: "Customer",
+    fieldname: "customer_name",
+  },
+  onSuccess(data) {
+    if (data.customer_name) {
+      console.log(data.customer_name);
+      document.querySelector(".client_name input").value = data.customer_name;
+    }
+  },
+});
 
 function onUpdateQuery(query: string) {
   if (!query && autocompleteRef.value) return;
-
-  if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
+  if (props.doctype === "HD Ticket Type") {
     const parentTicketType = getParentTicketType();
     r.update({
       filters: {
@@ -82,7 +97,7 @@ function onUpdateQuery(query: string) {
         ["parent_ticket_type"]: ["=", parentTicketType],
       },
     });
-  } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
+  } else if (props.doctype === "IO DP Master") {
     const client_id = getClientId();
     r.update({
       filters: {
@@ -100,42 +115,50 @@ function onUpdateQuery(query: string) {
   r.reload();
 }
 
+function onSelectionChange(value) {
+  selection.value = value;
+  console.log("Selection changed", selection.value);
+  if (props.doctype === "Customer" && value) {
+    const filters = { ["name"]: ["=", value] };
+    console.log("Filters changed", filters);
+    clientName.update(filters);
+    clientName.setData();
+  }
+}
+
 watchEffect(() => {
   autocompleteRef.value?.$refs?.search?.$el?.addEventListener(
     "focus",
     async () => {
-      if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
-        let filters = {
+      if (props.doctype === "HD Ticket Type") {
+        const filters = {
           ["parent_ticket_type"]: ["=", getParentTicketType()],
         };
         UpdateQuery(filters);
-      } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
-        let filters = {
-          ["client_id"]: ["=", getClientId()],
-        };
+      } else if (props.doctype === "IO DP Master") {
+        const filters = { ["client_id"]: ["=", getClientId()] };
         UpdateQuery(filters);
+      } else if (props.doctype === "Customer") {
+        const filters = { ["name"]: ["=", getClientId()] };
+        clientName.update(filters);
+        clientName.reload();
       }
     }
   );
 });
 
 function UpdateQuery(filters: any) {
-  r.update({
-    filters: filters,
-  });
-
+  r.update({ filters });
   r.reload();
 }
 
 function getParentTicketType() {
-  // Get selected parent ticket type
   const parentTicketType = getSelectedOption("parent_ticket_type");
   return parentTicketType;
 }
 
 function getClientId() {
-  // Get selected client id
-  let client_id = getSelectedOption("client_id");
+  const client_id = getSelectedOption("client_id");
   return client_id;
 }
 
@@ -146,7 +169,6 @@ function getSelectedOption(class_name: string) {
   }
 
   const selectedOption = $wrapper.innerText;
-
   if (!selectedOption) {
     return;
   }
