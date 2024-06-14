@@ -5,7 +5,7 @@
     :options="options"
     :value="selection"
     @update:query="(q) => onUpdateQuery(q)"
-    @change="onSelectionChange"
+    @change="(v) => onSelectionChange(v)"
   />
 </template>
 
@@ -81,7 +81,6 @@ const clientName = createResource({
   },
   onSuccess(data) {
     if (data.customer_name) {
-      console.log(data.customer_name);
       document.querySelector(".client_name input").value = data.customer_name;
     }
   },
@@ -115,14 +114,13 @@ function onUpdateQuery(query: string) {
   r.reload();
 }
 
-function onSelectionChange(value) {
-  selection.value = value;
-  console.log("Selection changed", selection.value);
-  if (props.doctype === "Customer" && value) {
-    const filters = { ["name"]: ["=", value] };
-    console.log("Filters changed", filters);
-    clientName.update(filters);
-    clientName.setData();
+function onSelectionChange(value_: any) {
+  selection.value = value_;
+
+  if (props.doctype === "Customer" && value_) {
+    updateClientFilter({
+      name: value_.value,
+    });
   }
 }
 
@@ -150,6 +148,17 @@ watchEffect(() => {
 function UpdateQuery(filters: any) {
   r.update({ filters });
   r.reload();
+}
+
+function updateClientFilter(filters: any) {
+  clientName.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "customer_name",
+      filters: filters,
+    },
+  });
+  clientName.reload();
 }
 
 function getParentTicketType() {
