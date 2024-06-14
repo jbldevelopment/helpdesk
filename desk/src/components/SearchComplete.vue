@@ -5,13 +5,13 @@
     :options="options"
     :value="selection"
     @update:query="(q) => onUpdateQuery(q)"
-    @change="(v) => (selection = v)"
+    @change="(v) => onSelectionChange(v)"
   />
 </template>
 
 <script setup lang="ts">
 import { Autocomplete } from "@/components";
-import { createListResource } from "frappe-ui";
+import { createResource, createListResource } from "frappe-ui";
 import { computed, ref, watchEffect } from "vue";
 
 const props = defineProps({
@@ -71,6 +71,19 @@ const options = computed(
 const selection = ref(null);
 const autocompleteRef = ref(null);
 
+const clientName = createResource({
+  url: "frappe.client.get_value",
+  params: {
+    doctype: "Customer",
+    fieldname: "customer_name",
+  },
+  onSuccess(data) {
+    if (data.customer_name) {
+      document.querySelector(".client_name input").value = data.customer_name;
+    }
+  },
+});
+
 function onUpdateQuery(query: string) {
   if (!query && autocompleteRef.value) return;
 
@@ -106,6 +119,16 @@ function onUpdateQuery(query: string) {
   r.reload();
 }
 
+function onSelectionChange(value_: any) {
+  selection.value = value_;
+
+  if (props.doctype === "Customer" && value_) {
+    updateClientFilter({
+      name: value_.value,
+    });
+  }
+}
+
 watchEffect(() => {
   autocompleteRef.value?.$refs?.search?.$el?.addEventListener(
     "focus",
@@ -131,6 +154,17 @@ function UpdateQuery(filters: any) {
   });
 
   r.reload();
+}
+
+function updateClientFilter(filters: any) {
+  clientName.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "customer_name",
+      filters: filters,
+    },
+  });
+  clientName.reload();
 }
 
 function getParentTicketType() {
