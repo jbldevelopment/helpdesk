@@ -81,7 +81,7 @@ const clientName = createResource({
     if (data.customer_name) {
       document
         .querySelector("#frappe-ui-2")
-        .setAttribute("value", data.customer_name);
+        .parentNode.setAttribute("value", data.customer_name);
     }
   },
 });
