@@ -79,7 +79,8 @@ const clientName = createResource({
   },
   onSuccess(data) {
     if (data.customer_name) {
-      document.querySelector(".client_name input").value = data.customer_name;
+      document.querySelector(".client_name #frappe-ui-2").value =
+        data.customer_name;
     }
   },
 });
