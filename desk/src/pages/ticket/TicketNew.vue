@@ -135,14 +135,18 @@ function setDisplayField(field: any, value: any) {
   });
 }
 
-function evaluate_depends_on(expression: string, field: any, _value: any) {
+function evaluate_depends_on(expression, field, _value) {
   if (expression.substr(0, 5) == "eval:") {
     try {
-      let split_string = expression.substr(5).split("=");
-      let fieldname = split_string[0].split(".")[1];
-      let depends_on_value = split_string.pop().replace(/['"]/g, "");
+      let evalExpression = expression.substr(5);
+      let condition = evalExpression.replace(/doc\./g, "templateFields.");
 
-      if (templateFields[fieldname] == depends_on_value) {
+      let isConditionMet = new Function(
+        "templateFields",
+        `return ${condition};`
+      )(templateFields);
+
+      if (isConditionMet) {
         field.hide_from_customer = false;
         field.required = true;
       } else {

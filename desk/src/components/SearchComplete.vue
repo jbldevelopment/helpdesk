@@ -71,21 +71,28 @@ const options = computed(
 const selection = ref(null);
 const autocompleteRef = ref(null);
 
-const clientName = createResource({
-  url: "frappe.client.get_value",
-  params: {
-    doctype: "Customer",
-    fieldname: "customer_name",
-  },
-  onSuccess(data) {
-    if (data.customer_name) {
-      document
-        .querySelector("#frappe-ui-2")
-        .parentNode.setAttribute("value", data.customer_name);
-      document.querySelector("#frappe-ui-2").value = data.customer_name;
-    }
-  },
-});
+function createResourceForField(fieldname, selector) {
+  return createResource({
+    url: "frappe.client.get_value",
+    params: {
+      doctype: "Customer",
+      fieldname: fieldname,
+    },
+    onSuccess(data) {
+      if (data[fieldname]) {
+        const inputElement = document.querySelector(selector);
+        if (inputElement) {
+          inputElement.value = data[fieldname];
+          inputElement.dispatchEvent(new Event("input"));
+          inputElement.dispatchEvent(new Event("change"));
+        }
+      }
+    },
+  });
+}
+
+const clientName = createResourceForField("customer_name", "#frappe-ui-2");
+const existingPan = createResourceForField("pan", "#frappe-ui-5");
 
 function onUpdateQuery(query: string) {
   if (!query && autocompleteRef.value) return;
@@ -168,6 +175,14 @@ function updateClientFilter(filters: any) {
     },
   });
   clientName.reload();
+  existingPan.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "pan",
+      filters: filters,
+    },
+  });
+  existingPan.reload();
 }
 
 function getParentTicketType() {
