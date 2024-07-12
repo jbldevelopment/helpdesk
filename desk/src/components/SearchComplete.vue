@@ -91,8 +91,32 @@ function createResourceForField(fieldname, selector) {
   });
 }
 
-const clientName = createResourceForField("customer_name", "#frappe-ui-2");
-const existingPan = createResourceForField("pan", "#frappe-ui-5");
+const clientName = createResourceForField(
+  "customer_name",
+  ".client_name input"
+);
+const existingPan = createResourceForField("pan", ".existing_pan input");
+const existingGuardianName = createResourceForField(
+  "guardian_name",
+  ".existing_guardian_name input"
+);
+const existingDOB = createResourceForField("dob", ".existing_dob input");
+const existingSeconHolder = createResourceForField(
+  "second_holder_name",
+  ".existing_second_holder_name input"
+);
+const existingThirdHolder = createResourceForField(
+  "third_holder_name",
+  ".existing_third_holder_name input"
+);
+const existingKartaName = createResourceForField(
+  "karta_name",
+  ".existing_karta_name input"
+);
+const existingNRIType = createResourceForField(
+  "nri_type",
+  ".existing_nri_type input"
+);
 
 function onUpdateQuery(query: string) {
   if (!query && autocompleteRef.value) return;
@@ -113,9 +137,31 @@ function onUpdateQuery(query: string) {
       },
     });
   } else if (autocompleteRef.value && props.doctype === "Customer") {
+    const parentTicketType = getTicketType();
+    let filters = {
+      [props.searchField]: ["like", `%${query}%`],
+      ["disabled"]: ["=", 0],
+    };
+    if (parentTicketType == "NRI to Resident Indian Account Status Change") {
+      filters["customer_group"] = ["=", "Non Resident Indian"];
+    } else if (
+      parentTicketType == "Resident Indian/NRE to NRO Account Status Change"
+    ) {
+      filters["customer_group"] = [
+        "in",
+        ["Resident Individual", "Non Resident External"],
+      ];
+    }
+    r.update({
+      filters: filters,
+    });
+  } else if (autocompleteRef.value && props.doctype === "Bank Account") {
+    const client_id = getClientId();
     r.update({
       filters: {
-        [props.searchField]: ["like", `%${query}%`],
+        ["party_type"]: ["=", "Customer"],
+        ["party"]: ["=", client_id],
+        ["disabled"]: ["=", 0],
       },
     });
   } else {
@@ -153,6 +199,13 @@ watchEffect(() => {
           ["client_id"]: ["=", getClientId()],
         };
         UpdateQuery(filters);
+      } else if (autocompleteRef.value && props.doctype === "Bank Account") {
+        let filters = {
+          ["party_type"]: ["=", "Customer"],
+          ["party"]: ["=", getClientId()],
+          ["disabled"]: ["=", 0],
+        };
+        UpdateQuery(filters);
       }
     }
   );
@@ -183,12 +236,66 @@ function updateClientFilter(filters: any) {
     },
   });
   existingPan.reload();
+  existingGuardianName.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "guardian_name",
+      filters: filters,
+    },
+  });
+  existingGuardianName.reload();
+  existingDOB.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "dob",
+      filters: filters,
+    },
+  });
+  existingDOB.reload();
+  existingSeconHolder.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "second_holder_name",
+      filters: filters,
+    },
+  });
+  existingSeconHolder.reload();
+  existingThirdHolder.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "third_holder_name",
+      filters: filters,
+    },
+  });
+  existingThirdHolder.reload();
+  existingKartaName.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "karta_name",
+      filters: filters,
+    },
+  });
+  existingKartaName.reload();
+  existingNRIType.update({
+    params: {
+      doctype: "Customer",
+      fieldname: "nri_type",
+      filters: filters,
+    },
+  });
+  existingNRIType.reload();
 }
 
 function getParentTicketType() {
   // Get selected parent ticket type
   const parentTicketType = getSelectedOption("parent_ticket_type");
   return parentTicketType;
+}
+
+function getTicketType() {
+  // Get selected ticket type
+  const TicketType = getSelectedOption("ticket_type");
+  return TicketType;
 }
 
 function getClientId() {
