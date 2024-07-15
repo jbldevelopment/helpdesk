@@ -13,6 +13,7 @@
 import { Autocomplete } from "@/components";
 import { createResource, createListResource } from "frappe-ui";
 import { computed, ref, watchEffect } from "vue";
+import { useAuthStore } from "@/stores/auth";
 
 const props = defineProps({
   value: {
@@ -59,6 +60,14 @@ const r = createListResource({
     selection.value = props.value
       ? options.value.find((o) => o.value === props.value)
       : null;
+
+    // Append new data after initial fetch
+    let client_id = getclientLogin();
+    if (client_id && props.doctype == "Customer") {
+      r.data.push({
+        name: client_id,
+      });
+    }
   },
 });
 const options = computed(
@@ -70,6 +79,7 @@ const options = computed(
 );
 const selection = ref(null);
 const autocompleteRef = ref(null);
+const authStore = useAuthStore();
 
 function createResourceForField(fieldname, selector) {
   return createResource({
@@ -90,6 +100,23 @@ function createResourceForField(fieldname, selector) {
     },
   });
 }
+
+const client_data = createResource({
+  url: "frappe.client.get_value",
+  params: {
+    doctype: "User",
+    fieldname: "customer",
+    filters: {
+      name: ["=", authStore.userId],
+    },
+  },
+  transform(data) {
+    if (data["customer"]) {
+      let client_id = data["customer"];
+      return client_id;
+    }
+  },
+});
 
 const clientName = createResourceForField(
   "customer_name",
@@ -142,6 +169,10 @@ function onUpdateQuery(query: string) {
       [props.searchField]: ["like", `%${query}%`],
       ["disabled"]: ["=", 0],
     };
+    let client_id = getclientLogin();
+    if (client_id) {
+      filters["branch_code"] = ["=", client_id];
+    }
     if (parentTicketType == "NRI to Resident Indian Account Status Change") {
       filters["customer_group"] = ["=", "Non Resident Indian"];
     } else if (
@@ -206,6 +237,15 @@ watchEffect(() => {
           ["disabled"]: ["=", 0],
         };
         UpdateQuery(filters);
+      } else if (autocompleteRef.value && props.doctype == "Customer") {
+        let client_id = getclientLogin();
+        if (client_id) {
+          let filters = {
+            ["disabled"]: ["=", 0],
+            ["branch_code"]: ["=", client_id],
+          };
+          UpdateQuery(filters);
+        }
       }
     }
   );
@@ -301,7 +341,12 @@ function getTicketType() {
 function getClientId() {
   // Get selected client id
   let client_id = getSelectedOption("client_id");
-  return client_id;
+  if (client_id && client_id != "Select an option") return client_id;
+}
+
+function getclientLogin() {
+  client_data.reload();
+  return client_data.data;
 }
 
 function getSelectedOption(class_name: string) {
