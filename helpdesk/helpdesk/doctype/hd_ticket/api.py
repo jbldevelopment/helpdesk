@@ -56,7 +56,6 @@ def get_one(name):
 	)
 	if contact:
 		contact = contact[0]
-	print("Ticket", ticket)
 	return {
 		**ticket,
 		"assignee": get_assignee(ticket._assign),
