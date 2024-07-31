@@ -154,7 +154,7 @@ function onUpdateQuery(query: string) {
       filters: {
         [props.searchField]: ["like", `%${query}%`],
         ["parent_ticket_type"]: ["=", parentTicketType],
-        ["enabled"]: ["=", 1],
+        ["disabled"]: ["!=", 1],
       },
     });
   } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
@@ -201,7 +201,7 @@ function onUpdateQuery(query: string) {
     props.doctype == "HD Parent Ticket Type"
   ) {
     let filters = {
-      ["enabled"]: ["=", 1],
+      ["disabled"]: ["!=", 1],
     };
     UpdateQuery(filters);
   } else {
@@ -232,7 +232,7 @@ watchEffect(() => {
       if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
         let filters = {
           ["parent_ticket_type"]: ["=", getParentTicketType()],
-          ["enabled"]: ["=", 1],
+          ["disabled"]: ["!=", 1],
         };
         UpdateQuery(filters);
       } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
@@ -261,7 +261,7 @@ watchEffect(() => {
         props.doctype == "HD Parent Ticket Type"
       ) {
         let filters = {
-          ["enabled"]: ["=", 1],
+          ["disabled"]: ["!=", 1],
         };
         UpdateQuery(filters);
       }
