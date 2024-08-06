@@ -129,6 +129,84 @@ const presetFilters = [
       );
     },
   },
+  {
+    label: "My Not Addressed Tickets",
+    onClick: (e) => {
+      const preset = getPresetFilters("Not Addressed");
+      emitToParent(
+        {
+          event: "preset",
+          data: preset,
+        },
+        "event:filter"
+      );
+    },
+  },
+  {
+    label: "Open Tickets",
+    onClick: (e) => {
+      const preset = raisedPresetFilters("Open");
+      emitToParent(
+        {
+          event: "preset",
+          data: preset,
+        },
+        "event:filter"
+      );
+    },
+  },
+  {
+    label: "Replied Tickets",
+    onClick: (e) => {
+      const preset = raisedPresetFilters("Replied");
+      emitToParent(
+        {
+          event: "preset",
+          data: preset,
+        },
+        "event:filter"
+      );
+    },
+  },
+  {
+    label: "Resolved Tickets",
+    onClick: (e) => {
+      const preset = raisedPresetFilters("Resolved");
+      emitToParent(
+        {
+          event: "preset",
+          data: preset,
+        },
+        "event:filter"
+      );
+    },
+  },
+  {
+    label: "Closed Tickets",
+    onClick: (e) => {
+      const preset = raisedPresetFilters("Closed");
+      emitToParent(
+        {
+          event: "preset",
+          data: preset,
+        },
+        "event:filter"
+      );
+    },
+  },
+  {
+    label: "Not Addressed Tickets",
+    onClick: (e) => {
+      const preset = raisedPresetFilters("Not Addressed");
+      emitToParent(
+        {
+          event: "preset",
+          data: preset,
+        },
+        "event:filter"
+      );
+    },
+  },
 ];
 
 function getPresetFilters(status) {
@@ -152,6 +230,31 @@ function getPresetFilters(status) {
     filtersToApply: {
       status: ["=", status],
       _assign: ["LIKE", `%${authStore.userId}%`],
+    },
+  };
+}
+
+function raisedPresetFilters(status) {
+  return {
+    filters: [
+      {
+        field: props.filter.filterableFields.find(
+          (f) => f.fieldname === "status"
+        ),
+        operator: "is",
+        value: status,
+      },
+      {
+        field: props.filter.filterableFields.find(
+          (f) => f.fieldname === "raised_by"
+        ),
+        operator: "is",
+        value: authStore.userId,
+      },
+    ],
+    filtersToApply: {
+      status: ["=", status],
+      raised_by: ["LIKE", `%${authStore.userId}%`],
     },
   };
 }
