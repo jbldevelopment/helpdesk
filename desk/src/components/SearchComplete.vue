@@ -63,7 +63,11 @@ const r = createListResource({
 
     // Append new data after initial fetch
     let client_id = getclientLogin();
-    if (client_id && props.doctype == "Customer") {
+    if (
+      client_id &&
+      typeof client_id === "string" &&
+      props.doctype == "Customer"
+    ) {
       r.data.push({
         name: client_id,
       });
@@ -171,7 +175,9 @@ function onUpdateQuery(query: string) {
       ["disabled"]: ["=", 0],
     };
     let client_id = getclientLogin();
-    if (client_id) {
+    if (client_id instanceof Object && client_id["customer"]) {
+      filters["branch_code"] = ["=", client_id["customer"]];
+    } else if (client_id && typeof client_id === "string") {
       filters["branch_code"] = ["=", client_id];
     }
     if (parentTicketType == "NRI to Resident Indian Account Status Change") {
@@ -249,13 +255,15 @@ watchEffect(() => {
         UpdateQuery(filters);
       } else if (autocompleteRef.value && props.doctype == "Customer") {
         let client_id = getclientLogin();
-        if (client_id) {
-          let filters = {
-            ["disabled"]: ["=", 0],
-            ["branch_code"]: ["=", client_id],
-          };
-          UpdateQuery(filters);
+        let filters = {
+          ["disabled"]: ["=", 0],
+        };
+        if (client_id instanceof Object && client_id["customer"]) {
+          filters["branch_code"] = ["=", client_id["customer"]];
+        } else if (client_id && typeof client_id === "string") {
+          filters["branch_code"] = ["=", client_id];
         }
+        UpdateQuery(filters);
       } else if (
         autocompleteRef.value &&
         props.doctype == "HD Parent Ticket Type"
