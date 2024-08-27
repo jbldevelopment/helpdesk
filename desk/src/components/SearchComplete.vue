@@ -57,9 +57,7 @@ const r = createListResource({
     [props.searchField]: ["like", `%${props.value}%`],
   },
   onSuccess: () => {
-    selection.value = props.value
-      ? options.value.find((o) => o.value === props.value)
-      : null;
+    changeOptions();
 
     // Append new data after initial fetch
     let client_id = getclientLogin();
@@ -71,6 +69,16 @@ const r = createListResource({
       r.data.push({
         name: client_id,
       });
+      if (!selection.value) {
+        selection.value = options.value.find((o) => o.value === client_id);
+        updateClientFilter({
+          name: client_id,
+        });
+      }
+    } else {
+      selection.value = props.value
+        ? options.value.find((o) => o.value === props.value)
+        : null;
     }
   },
 });
@@ -235,47 +243,51 @@ watchEffect(() => {
   autocompleteRef.value?.$refs?.search?.$el?.addEventListener(
     "focus",
     async () => {
-      if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
-        let filters = {
-          ["parent_ticket_type"]: ["=", getParentTicketType()],
-          ["disabled"]: ["!=", 1],
-        };
-        UpdateQuery(filters);
-      } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
-        let filters = {
-          ["client_id"]: ["=", getClientId()],
-        };
-        UpdateQuery(filters);
-      } else if (autocompleteRef.value && props.doctype === "Bank Account") {
-        let filters = {
-          ["party_type"]: ["=", "Customer"],
-          ["party"]: ["=", getClientId()],
-          ["disabled"]: ["=", 0],
-        };
-        UpdateQuery(filters);
-      } else if (autocompleteRef.value && props.doctype == "Customer") {
-        let client_id = getclientLogin();
-        let filters = {
-          ["disabled"]: ["=", 0],
-        };
-        if (client_id instanceof Object && client_id["customer"]) {
-          filters["branch_code"] = ["=", client_id["customer"]];
-        } else if (client_id && typeof client_id === "string") {
-          filters["branch_code"] = ["=", client_id];
-        }
-        UpdateQuery(filters);
-      } else if (
-        autocompleteRef.value &&
-        props.doctype == "HD Parent Ticket Type"
-      ) {
-        let filters = {
-          ["disabled"]: ["!=", 1],
-        };
-        UpdateQuery(filters);
-      }
+      changeOptions();
     }
   );
 });
+
+function changeOptions() {
+  if (autocompleteRef.value && props.doctype === "HD Ticket Type") {
+    let filters = {
+      ["parent_ticket_type"]: ["=", getParentTicketType()],
+      ["disabled"]: ["!=", 1],
+    };
+    UpdateQuery(filters);
+  } else if (autocompleteRef.value && props.doctype === "IO DP Master") {
+    let filters = {
+      ["client_id"]: ["=", getClientId()],
+    };
+    UpdateQuery(filters);
+  } else if (autocompleteRef.value && props.doctype === "Bank Account") {
+    let filters = {
+      ["party_type"]: ["=", "Customer"],
+      ["party"]: ["=", getClientId()],
+      ["disabled"]: ["=", 0],
+    };
+    UpdateQuery(filters);
+  } else if (autocompleteRef.value && props.doctype == "Customer") {
+    let client_id = getclientLogin();
+    let filters = {
+      ["disabled"]: ["=", 0],
+    };
+    if (client_id instanceof Object && client_id["customer"]) {
+      filters["branch_code"] = ["=", client_id["customer"]];
+    } else if (client_id && typeof client_id === "string") {
+      filters["branch_code"] = ["=", client_id];
+    }
+    UpdateQuery(filters);
+  } else if (
+    autocompleteRef.value &&
+    props.doctype == "HD Parent Ticket Type"
+  ) {
+    let filters = {
+      ["disabled"]: ["!=", 1],
+    };
+    UpdateQuery(filters);
+  }
+}
 
 function UpdateQuery(filters: any) {
   r.update({

@@ -129,45 +129,29 @@ function sanitize(html: string) {
 function setDisplayField(field: any, value: any) {
   templateFields[field.fieldname] = value;
   template.data?.fields?.forEach((f) => {
-    if (f.depends_on) {
-      evaluate_expression(f.depends_on, f, value, true);
-    }
-    if (f.mandatory_depends_on) {
-      evaluate_expression(f.mandatory_depends_on, f, value, false);
+    if (f.depends_on || f.mandatory_depends_on) {
+      evaluate_depends_on(f.depends_on, f, value);
     }
   });
 }
 
-function evaluate_expression(
-  expression: string,
-  field: any,
-  _value: any,
-  isDependsOn: boolean
-) {
-  if (expression.startsWith("eval:")) {
+function evaluate_depends_on(expression, field, _value) {
+  if (expression.substr(0, 5) == "eval:") {
     try {
-      let evalString = expression
-        .substr(5)
-        .replace(/doc\./g, "templateFields.");
+      let evalExpression = expression.substr(5);
+      let condition = evalExpression.replace(/doc\./g, "templateFields.");
 
-      let conditionMet = new Function(
+      let isConditionMet = new Function(
         "templateFields",
-        `return (${evalString})`
+        `return ${condition};`
       )(templateFields);
 
-      if (isDependsOn) {
-        let [fieldname, depends_on_value] = evalString
-          .split("==")
-          .map((s) => s.trim().replace(/['"]/g, ""));
-        if (templateFields[fieldname.split(".")[1]] == depends_on_value) {
-          field.hide_from_customer = false;
-          field.required = true;
-        } else {
-          field.hide_from_customer = true;
-          field.required = false;
-        }
+      if (isConditionMet) {
+        field.hide_from_customer = false;
+        field.required = true;
       } else {
-        field.required = conditionMet;
+        field.hide_from_customer = true;
+        field.required = false;
       }
     } catch (e) {
       console.error(e);
