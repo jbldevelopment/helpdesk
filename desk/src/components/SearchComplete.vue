@@ -70,7 +70,7 @@ const r = createListResource({
         name: client_id,
       });
       if (!selection.value) {
-        selection.value = options.value.find((o) => o.value === client_id);
+        selection.value = client_id;
         updateClientFilter({
           name: client_id,
         });
