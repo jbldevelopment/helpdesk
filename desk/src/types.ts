@@ -104,6 +104,11 @@ export interface Filter {
   value: boolean | number | string;
 }
 
+export interface AutoCompleteItem {
+  label: string;
+  value: string;
+}
+
 export interface Field {
   fieldname: string;
   fieldtype: string;
@@ -114,6 +119,8 @@ export interface Field {
   description?: null;
   url_method?: string;
 }
+
+export type FieldValue = string | number | boolean;
 
 export interface Template {
   about: string;
@@ -131,6 +138,7 @@ export type Column = {
 
 export type File = {
   file_name: string;
+  name: string;
   file_url: string;
   is_private: boolean;
   attached_to_doctype?: string;
@@ -154,3 +162,34 @@ export type UserInfo = {
   image: string;
   name: string;
 };
+
+export interface RenderField {
+  label: string;
+  name: string;
+  type: string;
+  placeholder?: string;
+  description?: string;
+}
+
+export interface EmailService {
+  name: string;
+  icon: string;
+  info: string;
+  link: string;
+  custom: boolean;
+}
+
+export type EmailStep = "email-list" | "email-add" | "email-edit";
+
+export interface EmailAccount {
+  email_account_name: string;
+  email_id: string;
+  service: string;
+  api_key?: string;
+  api_secret?: string;
+  password?: string;
+  enable_outgoing?: boolean;
+  enable_incoming?: boolean;
+  default_outgoing?: boolean;
+  default_incoming?: boolean;
+}

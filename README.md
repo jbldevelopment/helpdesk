@@ -10,7 +10,7 @@
 [frappedesk.com](https://frappedesk.com)
 
 <div align="center" style="max-height: 40px;">
-	<a href="https://frappecloud.com/fdesk/signup">
+	<a href="https://frappecloud.com/helpdesk/signup">
 		<img src=".github/try-on-f-cloud-button.svg" height="50">
 	</a>
 </div>
@@ -24,7 +24,7 @@ Frappe Helpdesk offers an easy setup, clean user interface, and automation tools
 -   Empower customers with a comprehensive knowledge base and self-service portal
 -   Automate redundant tasks like agent assignment and set up triggers to notify agents and customers based on certain events
 
-![screenshot](./screenshot.png)
+![screenshot](./screenshot.webp)
 
 ## Installation
 

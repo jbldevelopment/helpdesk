@@ -6,11 +6,7 @@
   >
     <template #body>
       <div>
-        <Combobox
-          v-slot="{ activeIndex }"
-          nullable
-          @update:model-value="onSelection"
-        >
+        <Combobox nullable @update:model-value="onSelection">
           <div class="relative">
             <div class="pl-4.5 absolute inset-y-0 left-0 flex items-center">
               <LucideSearch class="h-4 w-4" />
@@ -28,7 +24,7 @@
             :hold="true"
           >
             <div
-              v-for="(group, index) in groupedSearchResults"
+              v-for="group in groupedSearchResults"
               :key="group.title"
               class="mt-4.5 mb-2 first:mt-3"
             >
@@ -67,12 +63,11 @@ import {
   ComboboxOptions,
   ComboboxOption,
 } from "@headlessui/vue";
-import CPItem from "./CPItem.vue";
-import CPTicket from "./CPTicket.vue";
-import LucideLayoutGrid from "~icons/lucide/layout-grid";
+import CPGroup from "./CPGroup.vue";
+import CPGroupResult from "./CPGroupResult.vue";
 import LucideSearch from "~icons/lucide/file-search";
 import LucideTicket from "~icons/lucide/ticket";
-import LucideUser from "~icons/lucide/user";
+import LucideBookOpen from "~icons/lucide/book-open";
 
 let show = ref(false);
 
@@ -95,8 +90,8 @@ export default {
     ComboboxInput,
     ComboboxOptions,
     ComboboxOption,
-    CPTicket,
-    CPItem,
+    CPGroup,
+    CPGroupResult,
   },
   setup() {
     return { show };
@@ -118,12 +113,27 @@ export default {
         transform(groups) {
           for (let group of groups) {
             if (group.title === "Tickets") {
-              group.component = "CPTicket";
+              group.component = "CPGroupResult";
               group.items = group.items.map((item) => {
+                item.showName = true;
                 item.route = {
                   name: "TicketAgent",
                   params: {
                     ticketId: item.name,
+                  },
+                };
+                return item;
+              });
+            } else if (group.title === "Articles") {
+              group.component = "CPGroupResult";
+              group.items = group.items.map((item) => {
+                if (item.headings) {
+                  item.subject = item.subject + " / " + item.headings;
+                }
+                item.route = {
+                  name: "DeskKBArticle",
+                  params: {
+                    articleId: item.name,
                   },
                 };
                 return item;
@@ -139,23 +149,23 @@ export default {
     navigationItems() {
       return {
         title: "Jump to",
-        component: "CPItem",
+        component: "CPGroup",
         items: [
           {
             title: "Tickets",
             icon: () => h(LucideTicket),
             route: { name: "TicketsAgent" },
           },
+          // {
+          //   title: "Agents",
+          //   icon: () => h(LucideUser),
+          //   route: { name: "AgentList" },
+          //   condition: () => true,
+          // },
           {
-            title: "Dashboard",
-            icon: () => h(LucideLayoutGrid),
-            route: { name: "DeskDashboard" },
-            condition: () => true,
-          },
-          {
-            title: "Agents",
-            icon: () => h(LucideUser),
-            route: { name: "AgentList" },
+            title: "Knowledge Base",
+            icon: () => h(LucideBookOpen),
+            route: { name: "DeskKBHome" },
             condition: () => true,
           },
         ].filter((item) => (item.condition ? item.condition() : true)),
@@ -165,7 +175,7 @@ export default {
       return {
         title: "Search",
         hideTitle: true,
-        component: "CPItem",
+        component: "CPGroup",
         items: [
           {
             title: `Search for "${this.query}"`,

@@ -1,18 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { init as initTelemetry } from "@/telemetry";
-import { AuthPages } from "./auth";
-import { CustomerPages } from "./customer";
-import { KnowldegeBasePages } from "./knowledege-base";
-import { getPage } from "./utils";
 
-export const WEBSITE_ROOT = "Website Root";
+import { useScreenSize } from "@/composables/screen";
+const { isMobileView } = useScreenSize();
 
-export const LOGIN = "AuthLogin";
-export const SIGNUP = "AuthSignup";
-export const VERIFY = "AuthVerify";
-export const AUTH_ROUTES = [LOGIN, SIGNUP, VERIFY];
 export const ONBOARDING_PAGE = "Setup";
 
 export const CUSTOMER_PORTAL_NEW_TICKET = "TicketNew";
@@ -21,15 +13,11 @@ export const CUSTOMER_PORTAL_TICKET = "TicketCustomer";
 export const AGENT_PORTAL_AGENT_LIST = "AgentList";
 export const AGENT_PORTAL_CONTACT_LIST = "ContactList";
 export const AGENT_PORTAL_CUSTOMER_LIST = "CustomerList";
-export const AGENT_PORTAL_DASHBOARD = "DeskDashboard";
 export const AGENT_PORTAL_ESCALATION_RULE_LIST = "EscalationRules";
 export const AGENT_PORTAL_TEAM_LIST = "Teams";
 export const AGENT_PORTAL_TEAM_SINGLE = "Team";
 export const AGENT_PORTAL_TICKET = "TicketAgent";
 export const AGENT_PORTAL_TICKET_LIST = "TicketsAgent";
-export const AGENT_PORTAL_TICKET_TYPE_LIST = "TicketTypes";
-export const AGENT_PORTAL_TICKET_TYPE_NEW = "NewTicketType";
-export const AGENT_PORTAL_TICKET_TYPE_SINGLE = "TicketType";
 export const AGENT_PORTAL_KNOWLEDGE_BASE = "DeskKBHome";
 export const AGENT_PORTAL_KNOWLEDGE_BASE_CATEGORY = "DeskKBCategory";
 export const AGENT_PORTAL_KNOWLEDGE_BASE_SUB_CATEGORY = "DeskKBSubcategory";
@@ -41,15 +29,68 @@ export const KB_PUBLIC_CATEGORY = "KBCategoryPublic";
 
 export const CUSTOMER_PORTAL_LANDING = "TicketsCustomer";
 export const AGENT_PORTAL_LANDING = AGENT_PORTAL_TICKET_LIST;
-
+export const REDIRECT_PAGE = "/login?redirect-to=/helpdesk";
 const routes = [
   {
     path: "",
-    component: () => getPage("HRoot"),
+    component: () => import("@/pages/HRoot.vue"),
   },
-  AuthPages,
-  CustomerPages,
-  KnowldegeBasePages,
+  {
+    path: "/knowledge-base",
+    component: () => import("@/pages/KnowledgeBasePublic.vue"),
+    children: [
+      {
+        path: "",
+        name: "KBHome",
+        component: () => import("@/pages/KnowledgeBasePublicHome.vue"),
+      },
+      {
+        path: ":categoryId",
+        name: "KBCategoryPublic",
+        component: () => import("@/pages/KnowledgeBasePublicCategory.vue"),
+        props: true,
+      },
+      {
+        path: "articles/:articleId",
+        name: "KBArticlePublic",
+        component: () => import("@/pages/KnowledgeBaseArticle.vue"),
+        meta: {
+          public: true,
+        },
+        props: true,
+      },
+    ],
+  },
+  {
+    path: "/my-tickets",
+    component: () => import("@/pages/CLayout.vue"),
+    meta: {
+      auth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "TicketsCustomer",
+        component: () => import("@/pages/TicketsCustomer.vue"),
+      },
+      {
+        path: "new/:templateId?",
+        name: "TicketNew",
+        component: () => import("@/pages/TicketNew.vue"),
+        props: true,
+        meta: {
+          onSuccessRoute: "TicketCustomer",
+          parent: "TicketsCustomer",
+        },
+      },
+      {
+        path: ":ticketId",
+        name: "TicketCustomer",
+        component: () => import("@/pages/TicketCustomer.vue"),
+        props: true,
+      },
+    ],
+  },
   {
     path: "/onboarding",
     name: ONBOARDING_PAGE,
@@ -71,19 +112,19 @@ const routes = [
     },
     children: [
       {
-        path: "dashboard",
-        name: AGENT_PORTAL_DASHBOARD,
-        component: () => import("@/pages/desk/DeskDashboard.vue"),
-      },
-      {
         path: "tickets",
         name: AGENT_PORTAL_TICKET_LIST,
-        component: () => getPage("TicketsAgent"),
+        component: () => import("@/pages/TicketsAgent.vue"),
+      },
+      {
+        path: "notifications",
+        name: "Notifications",
+        component: () => import("@/pages/MobileNotifications.vue"),
       },
       {
         path: "tickets/new/:templateId?",
         name: "TicketAgentNew",
-        component: () => getPage("TicketNew"),
+        component: () => import("@/pages/TicketNew.vue"),
         props: true,
         meta: {
           onSuccessRoute: "TicketAgent",
@@ -92,8 +133,9 @@ const routes = [
       },
       {
         path: "tickets/:ticketId",
-        name: AGENT_PORTAL_TICKET,
-        component: () => getPage("TicketAgent2"),
+        name: "TicketAgent",
+        component: () =>
+          import(`@/pages/${handleMobileView("TicketAgent")}.vue`),
         props: true,
       },
       {
@@ -121,8 +163,7 @@ const routes = [
         path: "kb/articles/:articleId",
         name: AGENT_PORTAL_KNOWLEDGE_BASE_ARTICLE,
         props: true,
-        component: () =>
-          import("@/pages/knowledge-base/KnowledgeBaseArticle.vue"),
+        component: () => import("@/pages/KnowledgeBaseArticle.vue"),
       },
       {
         path: "customers",
@@ -151,31 +192,9 @@ const routes = [
         props: true,
       },
       {
-        path: "ticket-types",
-        name: AGENT_PORTAL_TICKET_TYPE_LIST,
-        component: () => import("@/pages/desk/ticket_type/TicketTypeList.vue"),
-      },
-      {
-        path: "ticket-types/:id",
-        name: AGENT_PORTAL_TICKET_TYPE_SINGLE,
-        component: () => import("@/pages/desk/ticket_type/TicketType.vue"),
-        props: true,
-      },
-      {
-        path: "ticket-types/new",
-        name: AGENT_PORTAL_TICKET_TYPE_NEW,
-        component: () => import("@/pages/desk/ticket_type/TicketType.vue"),
-      },
-      {
         path: "canned-responses",
         name: "CannedResponses",
         component: () => import("@/pages/CannedResponses.vue"),
-      },
-      {
-        path: "canned-responses/:id",
-        name: "CannedResponse",
-        component: () => import("@/pages/CannedResponse.vue"),
-        props: true,
       },
       {
         path: "escalation-rules",
@@ -187,40 +206,27 @@ const routes = [
   },
 ];
 
+const handleMobileView = (componentName) => {
+  return isMobileView.value ? `Mobile${componentName}` : componentName;
+};
+
 export const router = createRouter({
   history: createWebHistory("/helpdesk/"),
   routes,
 });
 
-router.beforeEach(async (to) => {
-  const isAuthRoute = AUTH_ROUTES.includes(to.name);
+router.beforeEach(async (to, _, next) => {
   const authStore = useAuthStore();
-  const usersStore = useUserStore();
+  const userStore = useUserStore();
 
-  try {
-    await initTelemetry();
+  if (authStore.isLoggedIn) {
     await authStore.init();
-    await usersStore.init();
+    await userStore.users.fetch();
+  }
 
-    if (isAuthRoute && authStore.isLoggedIn) {
-      if (authStore.isAgent) {
-        router.replace({ name: AGENT_PORTAL_LANDING });
-      } else {
-        router.replace({ name: CUSTOMER_PORTAL_LANDING });
-      }
-    } else if (!isAuthRoute && !authStore.isLoggedIn) {
-      router.replace({ name: "Login" });
-    } else if (to.matched.length === 0) {
-      router.replace({ name: "Invalid Page" });
-    }
-  } catch {
-    if (!isAuthRoute) {
-      router.replace({
-        name: LOGIN,
-        query: {
-          redirect: to.path.toString(),
-        },
-      });
-    }
+  if (!authStore.isLoggedIn) {
+    window.location.href = REDIRECT_PAGE;
+  } else {
+    next();
   }
 });

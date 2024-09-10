@@ -41,7 +41,12 @@
         :key="n.name"
         class="flex cursor-pointer items-start gap-3.5 px-5 py-2.5 hover:bg-gray-100"
         :to="getRoute(n)"
-        @click="() => notificationStore.toggle()"
+        @click="
+          () => {
+            notificationStore.toggle();
+            notificationStore.read(n.reference_ticket);
+          }
+        "
       >
         <UserAvatar v-bind="n.user_from" />
         <span>
@@ -68,7 +73,7 @@
             <div class="text-sm text-gray-600">
               {{ dayjs.tz(n.creation).fromNow() }}
             </div>
-            <div v-if="!n.read" class="h-1.5 w-1.5 rounded-full bg-gray-900" />
+            <div v-if="!n.read" class="h-1.5 w-1.5 rounded-full bg-blue-400" />
           </div>
         </span>
       </RouterLink>
@@ -88,11 +93,17 @@ import { UserAvatar } from "@/components";
 const notificationStore = useNotificationStore();
 const sidebarStore = useSidebarStore();
 const target = ref(null);
-onClickOutside(target, () => {
-  if (notificationStore.visible) {
-    notificationStore.toggle();
+onClickOutside(
+  target,
+  () => {
+    if (notificationStore.visible) {
+      notificationStore.toggle();
+    }
+  },
+  {
+    ignore: ["#notifications-btn"],
   }
-});
+);
 
 function getRoute(n: Notification) {
   switch (n.notification_type) {

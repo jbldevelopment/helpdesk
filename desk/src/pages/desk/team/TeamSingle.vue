@@ -1,9 +1,9 @@
 <template>
   <span>
     <div class="flex flex-col">
-      <PageTitle class="border-b">
-        <template #title>
-          <BreadCrumbs
+      <LayoutHeader>
+        <template #left-header>
+          <Breadcrumbs
             :items="[
               {
                 label: 'Teams',
@@ -13,12 +13,22 @@
               },
               {
                 label: teamId,
+                route: {
+                  name: AGENT_PORTAL_TEAM_SINGLE,
+                },
               },
             ]"
           />
         </template>
-        <template #right>
+        <template #right-header>
           <div class="flex items-center gap-2">
+            <Dropdown :options="docOptions">
+              <Button variant="ghost">
+                <template #icon>
+                  <IconMoreHorizontal class="h-4 w-4" />
+                </template>
+              </Button>
+            </Dropdown>
             <Button
               label="Add member"
               theme="gray"
@@ -29,34 +39,21 @@
                 <IconPlus class="h-4 w-4" />
               </template>
             </Button>
-            <Dropdown :options="docOptions">
-              <Button variant="ghost">
-                <template #icon>
-                  <IconMoreHorizontal class="h-4 w-4" />
-                </template>
-              </Button>
-            </Dropdown>
           </div>
         </template>
-      </PageTitle>
-      <div class="my-6">
+      </LayoutHeader>
+      <div class="m-2 my-4">
         <div class="container">
           <div class="space-y-4">
             <div class="text-lg font-medium">Members</div>
             <div v-if="!isEmpty(team.doc?.users)" class="flex flex-wrap gap-2">
-              <Button
+              <Pill
                 v-for="member in team.doc?.users"
-                :key="member.name"
+                :key="member.user"
                 :label="member.user"
                 :disabled="team.loading"
-                theme="gray"
-                variant="outline"
-                @click="removeMember(member.user)"
-              >
-                <template #suffix>
-                  <IconX class="h-3 w-3" />
-                </template>
-              </Button>
+                @click="(user) => removeMember(user)"
+              />
             </div>
             <div v-else class="text-base text-gray-900">
               No members found in team: {{ teamId }}
@@ -95,8 +92,20 @@
     <Dialog v-model="showAddMember" :options="addMemberDialogOptions">
       <template #body-content>
         <div class="space-y-2">
+          <div v-if="agentStore.agents.data.length === 0">
+            <p class="text-base text-gray-600">
+              No agents found, please add
+              <span
+                class="cursor-pointer underline"
+                @click="router.push('/agents')"
+                >agents</span
+              >
+              in the system.
+            </p>
+          </div>
           <div
-            v-for="agent in agentStore.options"
+            v-for="agent in agentStore.agents.data"
+            v-else
             :key="agent.name"
             class="flex items-center justify-between"
           >
@@ -132,16 +141,16 @@ import {
   Dropdown,
   FormControl,
   Switch,
+  Breadcrumbs,
 } from "frappe-ui";
 import { isEmpty } from "lodash";
 import { AGENT_PORTAL_TEAM_LIST, AGENT_PORTAL_TEAM_SINGLE } from "@/router";
 import { useAgentStore } from "@/stores/agent";
 import { useError } from "@/composables/error";
-import { PageTitle, BreadCrumbs } from "@/components";
-import TopBar from "@/components/TopBar.vue";
 import IconMoreHorizontal from "~icons/lucide/more-horizontal";
 import IconPlus from "~icons/lucide/plus";
-import IconX from "~icons/lucide/x";
+import Pill from "@/components/Pill.vue";
+import LayoutHeader from "@/components/LayoutHeader.vue";
 
 const props = defineProps({
   teamId: {

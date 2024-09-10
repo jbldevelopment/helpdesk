@@ -5,7 +5,14 @@
     :options="options"
     :value="selection"
     @update:query="(q) => onUpdateQuery(q)"
-    @change="(v) => onSelectionChange(v)"
+    @change="
+      (v) => {
+        if (!resetInput) {
+          onSelectionChange(v);
+        }
+        emit('change', v);
+      }
+    "
   />
 </template>
 
@@ -14,6 +21,8 @@ import { Autocomplete } from "@/components";
 import { createResource, createListResource } from "frappe-ui";
 import { computed, ref, watchEffect } from "vue";
 import { useAuthStore } from "@/stores/auth";
+
+const emit = defineEmits(["change"]);
 
 const props = defineProps({
   value: {
@@ -44,6 +53,11 @@ const props = defineProps({
     type: Number,
     required: false,
     default: 1000,
+  },
+  resetInput: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 });
 

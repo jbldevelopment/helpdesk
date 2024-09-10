@@ -18,34 +18,33 @@
       </Tooltip>
     </div>
     <Tooltip
-      v-for="avatar in reverseAvatars"
+      v-for="avatar in props.avatars"
       v-else
       :key="avatar.name"
       :text="avatar.name"
     >
       <Avatar
-        class="-mr-1.5 ring-2 ring-white transition hover:z-10 hover:scale-110"
+        class="user-avatar -mr-1.5 ring-2 ring-white transition hover:z-10 hover:scale-110"
         shape="circle"
         :image="avatar.image"
         :label="avatar.label"
         :size="size"
+        :data-name="avatar.name"
       />
     </Tooltip>
   </div>
 </template>
 <script setup lang="ts">
 import { Avatar, Tooltip } from "frappe-ui";
-import { computed } from "vue";
 
 const props = defineProps({
   avatars: {
     type: Array,
-    default: [],
+    default: () => [],
   },
   size: {
     type: String,
     default: "md",
   },
 });
-const reverseAvatars = computed(() => props.avatars.reverse());
 </script>
