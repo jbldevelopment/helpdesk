@@ -1,26 +1,24 @@
 import frappe
+from textblob import TextBlob
+
+from helpdesk.search import search as hd_search
+
+
+def get_nouns(text: str):
+    blob = TextBlob(text)
+    try:
+        return [word for word, pos in blob.pos_tags if pos[0] == "N"]
+    except LookupError:
+        return []
+
 
 @frappe.whitelist()
-def search(query):
-	if len(query) < 4:
-		return []
-	
-	queries = query.split(" ")
-	queries = [query for query in queries if len(query) >= 4]
-
-	if len(queries) == 0:
-		return []
-	
-	or_filters = []
-	
-	for i in range(len(queries)):
-		or_filters.append(["title", "like", "%{search}%".format(search=queries[i])])
-
-	data = frappe.get_all(
-		"HD Article",
-		fields=["name", "title"],
-		or_filters=or_filters,
-		page_length=5,
-		) or []
-
-	return data
+def search(query: str):
+    out = hd_search(query, only_articles=True)
+    if not out:  # fallback
+        if nouns := get_nouns(query):
+            query = " ".join(nouns)
+            out = hd_search(query, only_articles=True)
+        if not out:
+            return []
+    return out[0].get("items", [])

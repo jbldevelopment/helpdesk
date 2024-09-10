@@ -32,8 +32,10 @@
     <ListView :columns="columns" :resource="articles" doctype="HD Article">
       <template #title="{ data }">
         <div class="flex items-center gap-2">
-          <IconFile class="h-4 w-4" />
-          {{ data.title }}
+          <div><IconFile class="h-4 w-4" /></div>
+          <div class="truncate">
+            {{ data.title }}
+          </div>
         </div>
       </template>
       <template #status="{ data }">
@@ -143,6 +145,10 @@ const articles = createListManager({
         params: {
           articleId: d.name,
         },
+        query: {
+          category: route.params.categoryId,
+          subCategory: route.params.subCategoryId,
+        },
       };
     }
     return data;
@@ -154,11 +160,6 @@ const columns = [
     label: "Title",
     key: "title",
     width: "w-96",
-  },
-  {
-    label: "Views",
-    key: "views",
-    width: "w-12",
   },
   {
     label: "Status",

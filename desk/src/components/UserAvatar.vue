@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center gap-2">
-    <Avatar :label="name" :image="image" v-bind="$attrs" />
+    <Avatar :label="user.name" :image="user.user_image" v-bind="$attrs" />
     <span
       v-if="expand"
       class="truncate"
@@ -15,17 +15,22 @@
 </template>
 <script setup lang="ts">
 import { Avatar } from "frappe-ui";
+import { useUserStore } from "@/stores/user";
+const userStore = useUserStore();
 
-interface P {
-  name: string;
-  image?: string;
-  expand?: boolean;
-  strong?: boolean;
-}
-
-withDefaults(defineProps<P>(), {
-  image: "",
-  expand: false,
-  strong: false,
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
+  },
+  expand: {
+    type: Boolean,
+    default: false,
+  },
+  strong: {
+    type: Boolean,
+    default: false,
+  },
 });
+const user = userStore.getUser(props.name);
 </script>

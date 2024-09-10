@@ -1,7 +1,10 @@
 <template>
   <div class="flex flex-col">
-    <PageTitle title="Customers">
-      <template #right>
+    <LayoutHeader>
+      <template #left-header>
+        <div class="text-lg font-medium text-gray-900">Customers</div>
+      </template>
+      <template #right-header>
         <Button
           label="New customer"
           theme="gray"
@@ -9,11 +12,11 @@
           @click="isDialogVisible = !isDialogVisible"
         >
           <template #prefix>
-            <IconPlus class="h-4 w-4" />
+            <LucidePlus class="h-4 w-4" />
           </template>
         </Button>
       </template>
-    </PageTitle>
+    </LayoutHeader>
     <ListView
       :columns="columns"
       :resource="customers"
@@ -29,12 +32,13 @@
     </ListView>
     <NewCustomerDialog
       v-model="isDialogVisible"
-      @close="isDialogVisible = false"
+      @customer-created="handleCustomer"
     />
     <span v-if="isCustomerDialogVisible">
       <CustomerDialog
         v-model="isCustomerDialogVisible"
         :name="selectedCustomer"
+        @customer-updated="handleCustomer(true)"
       />
     </span>
   </div>
@@ -44,15 +48,14 @@ import { ref } from "vue";
 import { usePageMeta, Avatar } from "frappe-ui";
 import { createListManager } from "@/composables/listManager";
 import NewCustomerDialog from "@/components/desk/global/NewCustomerDialog.vue";
-import PageTitle from "@/components/PageTitle.vue";
 import { ListView } from "@/components";
 import CustomerDialog from "./CustomerDialog.vue";
-import IconPlus from "~icons/lucide/plus";
+import LayoutHeader from "@/components/LayoutHeader.vue";
 
 const isDialogVisible = ref(false);
 const isCustomerDialogVisible = ref(false);
 const selectedCustomer = ref(null);
-const emptyMessage = "No Customers Found";
+// const emptyMessage = "No Customers Found";
 const columns = [
   {
     label: "Name",
@@ -87,5 +90,11 @@ usePageMeta(() => {
 function openCustomer(id: string) {
   selectedCustomer.value = id;
   isCustomerDialogVisible.value = true;
+}
+function handleCustomer(updated = false) {
+  updated
+    ? (isCustomerDialogVisible.value = false)
+    : (isDialogVisible.value = false);
+  customers.reload();
 }
 </script>

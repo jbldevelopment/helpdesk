@@ -3,12 +3,14 @@
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"target": "es2021",
+		"module": "esnext",
 		"moduleResolution":"node",
 		"paths": {
 			"@/*": ["./src/*"]
 		},
 		"types": [
-			"unplugin-icons/types/vue"
+			"unplugin-icons/types/vue",
+			"vite/client"
 		]
 	}
 }
