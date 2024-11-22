@@ -49,6 +49,9 @@ import { ViewControls, LayoutHeader } from "@/components";
 import { useUserStore } from "@/stores/user";
 const { getUser } = useUserStore();
 
+const authStore = useAuthStore();
+import { useAuthStore } from "@/stores/auth";
+
 const breadcrumbs = [{ label: "Tickets", route: { name: "TicketsAgent" } }];
 let storage = useStorage("tickets_agent", {
   filtersToApply: {},
@@ -73,10 +76,12 @@ let pageLength = ref(storage.value.pageLength);
 let pageLengthCount = pageLength.value;
 
 const tickets = createResource({
-  url: "helpdesk.api.doc.get_list_data",
+  url: "helpdesk.api.doc.get_tickets_list",
   params: {
     doctype: "HD Ticket",
-    filters: filtersToApply,
+    filters: {
+      owner: authStore.userId,
+    },
     order_by: sortsToApply,
     page_length: pageLength.value,
     columns: columns.length ? columns : undefined,

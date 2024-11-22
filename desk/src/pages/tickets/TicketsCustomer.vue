@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { Dropdown, Tooltip } from "frappe-ui";
+import { Dropdown, Tooltip, frappe } from "frappe-ui";
 import { dayjs } from "@/dayjs";
 import { useConfigStore } from "@/stores/config";
 import { useTicketStatusStore } from "@/stores/ticketStatus";
@@ -106,6 +106,7 @@ import { createListManager } from "@/composables/listManager";
 import { CUSTOMER_PORTAL_TICKET, CUSTOMER_PORTAL_NEW_TICKET } from "@/router";
 import { ListView } from "@/components";
 import PageTitle from "@/components/PageTitle.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const configStore = useConfigStore();
 const ticketStatusStore = useTicketStatusStore();
@@ -146,10 +147,10 @@ const columns = [
     width: "w-32",
   },
 ];
-
+const session = useAuthStore();
 const tickets = createListManager({
   doctype: "HD Ticket",
-  pageLength: 20,
+  pageLength: 10,
   fields: [
     "name",
     "creation",
@@ -161,6 +162,10 @@ const tickets = createListManager({
     "first_responded_on",
     "resolution_date",
   ],
+  filters: {
+    owner: "vandna.pardeshi@jainam.in",
+    // role : 'Agent'
+  },
   auto: true,
   transform: (data) => {
     for (const d of data) {
@@ -180,6 +185,7 @@ const dropdownOptions = [
   {
     label: "All tickets",
     onClick() {
+      console.log("All tickets");
       filter("All tickets", { status: undefined });
     },
   },
